@@ -1,4 +1,7 @@
 import os
+import threading
+import http.server
+import socketserver
 from datetime import datetime
 from telegram import Update
 from telegram.ext import Updater, MessageHandler, Filters, CommandHandler, CallbackContext
@@ -76,7 +79,6 @@ def message_handler(update: Update, context: CallbackContext):
             prev_message = recent[1]['message_text']
             prev_time = t2.strftime("%Y-%m-%d %H:%M:%S")
 
-        # Sassy announcement:
         update.message.reply_text(
             f"Jialat! {username} just ruined the streak. We made it {days_since_last} days since the last slip-up.\n"
             f"Previously, {prev_user} messed up at {prev_time} with:\n\"{prev_message}\""
@@ -85,7 +87,6 @@ def message_handler(update: Update, context: CallbackContext):
 def leaderboard_command(update: Update, context: CallbackContext):
     data = get_leaderboard()
     if not data:
-        # Sassy for empty leaderboard
         update.message.reply_text("Wow, no one’s messed up yet! Who knew you were all so disciplined?")
         return
     msg = "The Hall of Shame:\n"
@@ -97,7 +98,6 @@ def leaderboard_command(update: Update, context: CallbackContext):
 def recent_command(update: Update, context: CallbackContext):
     data = get_recent_utterances(limit=5)
     if not data:
-        # Sassy no recent utterances
         update.message.reply_text("No recent slip-ups. Congrats, you angels! Keep it that way.")
         return
     msg = "Check out these recent troublemakers:\n"
@@ -107,16 +107,29 @@ def recent_command(update: Update, context: CallbackContext):
     msg += "Tsk, tsk."
     update.message.reply_text(msg)
 
-def main():
+def run_bot():
     updater = Updater(TELEGRAM_TOKEN, use_context=True)
     dp = updater.dispatcher
 
     dp.add_handler(MessageHandler(Filters.text & ~Filters.command, message_handler))
     dp.add_handler(CommandHandler("leaderboard", leaderboard_command))
     dp.add_handler(CommandHandler("recent", recent_command))
+
     print("Bot is starting up...")
     updater.start_polling()
     updater.idle()
 
+def run_server():
+    port = int(os.environ.get('PORT', 8080))
+    handler = http.server.SimpleHTTPRequestHandler
+    with socketserver.TCPServer(("", port), handler) as httpd:
+        print("HTTP server running on port:", port)
+        httpd.serve_forever()
+
 if __name__ == "__main__":
-    main()
+    # Run the bot in a separate thread
+    bot_thread = threading.Thread(target=run_bot, daemon=True)
+    bot_thread.start()
+
+    # Run a simple server in the main thread
+    run_server()
