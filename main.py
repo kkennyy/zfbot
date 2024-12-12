@@ -114,7 +114,7 @@ def main():
     dp.add_handler(MessageHandler(Filters.text & ~Filters.command, message_handler))
     dp.add_handler(CommandHandler("leaderboard", leaderboard_command))
     dp.add_handler(CommandHandler("recent", recent_command))
-
+    print("Bot is starting up...")
     updater.start_polling()
     updater.idle()
 
