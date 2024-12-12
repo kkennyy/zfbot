@@ -63,7 +63,7 @@ def message_handler(update: Update, context: CallbackContext):
 
         recent = get_recent_utterances(limit=2)
         days_since_last = 0
-        prev_user = "Unknown"
+        prev_user = "someone"
         prev_message = ""
         prev_time = ""
 
@@ -76,38 +76,41 @@ def message_handler(update: Update, context: CallbackContext):
             prev_message = recent[1]['message_text']
             prev_time = t2.strftime("%Y-%m-%d %H:%M:%S")
 
+        # Sassy announcement:
         update.message.reply_text(
-            f"Counter reset! It had been {days_since_last} days since the last utter.\n"
-            f"Previously by {prev_user} on {prev_time}:\n"
-            f"\"{prev_message}\""
+            f"Jialat! {username} just ruined the streak. We made it {days_since_last} days since the last slip-up.\n"
+            f"Previously, {prev_user} messed up at {prev_time} with:\n\"{prev_message}\""
         )
 
 def leaderboard_command(update: Update, context: CallbackContext):
     data = get_leaderboard()
     if not data:
-        update.message.reply_text("No one has uttered the forbidden words yet!")
+        # Sassy for empty leaderboard
+        update.message.reply_text("Wow, no one’s messed up yet! Who knew you were all so disciplined?")
         return
-    msg = "zfbot Leaderboard:\n"
+    msg = "The Hall of Shame:\n"
     for idx, row in enumerate(data, start=1):
-        msg += f"{idx}. {row['username']}: {row['count']} times\n"
+        msg += f"{idx}. {row['username']}: {row['count']} times.\n"
+    msg += "Seriously, guys. Get it together."
     update.message.reply_text(msg)
 
 def recent_command(update: Update, context: CallbackContext):
     data = get_recent_utterances(limit=5)
     if not data:
-        update.message.reply_text("No recent utterances found.")
+        # Sassy no recent utterances
+        update.message.reply_text("No recent slip-ups. Congrats, you angels! Keep it that way.")
         return
-    msg = "Recent forbidden word utterances:\n"
+    msg = "Check out these recent troublemakers:\n"
     for row in data:
         timestamp_str = datetime.fromisoformat(row['timestamp'].replace('Z','')).strftime("%Y-%m-%d %H:%M:%S")
         msg += f"- {row['username']} at {timestamp_str}: {row['message_text']}\n"
+    msg += "Tsk, tsk."
     update.message.reply_text(msg)
 
 def main():
     updater = Updater(TELEGRAM_TOKEN, use_context=True)
     dp = updater.dispatcher
 
-    # Handlers
     dp.add_handler(MessageHandler(Filters.text & ~Filters.command, message_handler))
     dp.add_handler(CommandHandler("leaderboard", leaderboard_command))
     dp.add_handler(CommandHandler("recent", recent_command))
