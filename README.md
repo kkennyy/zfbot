@@ -301,4 +301,4 @@ If it doesn’t respond:
 
 ---
 
-This README details every step—from database schema to environment variables, code deployment, and bot configuration—ensuring anyone can replicate and maintain a similar setup in the future.
+This README details every step—from database schema to environment variables, code deployment, and bot configuration.
